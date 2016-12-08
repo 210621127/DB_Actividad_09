@@ -5,6 +5,7 @@ Profesor: Michel Davalos Boites
 
 # Actividad 09 (SMTP) Extra
 Hacer que el software envíe correos por medio del protocolo SMTP.
+
 """
 
 #Me quede en definicion de reenviar linea 636/ Ajustar al software la funcion.
@@ -81,22 +82,22 @@ class MenuContatos():
         print("\n\t* * * Agregar contacto * * *\n")
         print("\n\tPresione solo <ENTER> para regresar...")
 
-        c.email = input("\n\tIngrese el correo del contacto: ")
+        c.email = str(input("\n\tIngrese el correo del contacto: ")).lower().strip()
         while len(c.email) < 1:
             return
-        while len(c.email) < 2: #<----- modificar para que reconozca minimo 8 caracteres
+        while len(c.email) < 8:
             print("\n\t(!) Ingrese un correo valido!")
             c.email = input ("\n\tCorreo: ")
 
         c.registra = u.correo
-        c.apellidoPatC = input("\n\tApellido paterno: ")
+        c.apellidoPatC = str(input("\n\tApellido paterno: ")).strip()
         while len(c.apellidoPatC) < 1 :
-            c.apellidoPatC = input("\t(!) Ingrese un apellido valido: ")
+            c.apellidoPatC = str(input("\t(!) Ingrese un apellido valido: ")).strip()
         c.apellidoMatC = input("\n\tApellido materno: ")
         if len(c.apellidoMatC) == 0:
             c.apellidoMatC = None
 
-        c.nombresC = input("\n\tNombres(s): ")
+        c.nombresC = str(input("\n\tNombres(s): ")).strip()
         while len(c.nombresC) < 1:
             c.nombresC = input("\t(!) Ingrese un nombre valido: ")
 
@@ -117,7 +118,7 @@ class MenuContatos():
         rows = cursor.execute('SELECT * FROM CONTACTO WHERE registra = ?',(u.correo,))
 
         print("\n\tContactos registrados\
-        \n\n=================================================")
+        \n\n\t=================================================")
 
         for row in rows:
             if row[0] != None:
@@ -134,8 +135,8 @@ class MenuContatos():
         if flag == False:
             print("\t(!) No existen contactos registrados!!")
 
-        print("=================================================")
-        input("\n\tPresione una tecla paracontinuar...")
+        print("\t=================================================")
+        input("\n\tPresione < ENTER > para continuar...")
 
     def submenu(self,u,c):
         self.list = []
@@ -164,8 +165,7 @@ class MenuContatos():
                     return None
         elif opc == 2:
             print("\n\tIndice")
-            rows = c.execute("SELECT * FROM CONTACTO WHERE registra = ?",\
-            (u.correo))
+            rows = c.execute("SELECT * FROM CONTACTO WHERE registra = ?",(u.correo,))
             for row in rows:
                 i += 1
                 self.list.append(row[1])
@@ -203,7 +203,7 @@ class MenuContatos():
             row = self.submenu(u,c)
             if row == None:
                 print("\n\t(!) No se encontro el contacto")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
                 break
             elif row == 0:
                 return
@@ -223,12 +223,12 @@ class MenuContatos():
                             c.execute("DELETE FROM CONTACTO WHERE contacto_id =\
                             ?",(con.contacto_id,))
                             print("\n\tEliminacion exitosa!")
-                            input("\n\tPresione una tecla para continuar...")
+                            input("\n\tPresione < ENTER > para continuar...")
                             break
                         elif opc == '2':
                             os.system("clear")
                             print("\n\tEliminacion abortada!!!")
-                            input("\n\tPresione una tecla para continuar...")
+                            input("\n\tPresione < ENTER > para continuar...")
                             break
                     else:
                         print("\n\t(!)Ingrese solo numeros!")
@@ -243,7 +243,7 @@ class MenuContatos():
             row = self.submenu(u,c)
             if row == None:
                 print("\n\t(!) No se encontro el contacto")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
                 break
             elif row == 0:
                 return
@@ -273,14 +273,14 @@ class MenuContatos():
                             c.execute("UPDATE CONTACTO set apellidoPatC = ? \
                             WHERE contacto_id = ?",(tmp,con.contacto_id,))
                             print("\n\tContacto actualizado!")
-                            input("\n\tPresione una tecla para continuar...")
+                            input("\n\tPresione < ENTER > para continuar...")
                             break
                         elif opc == '2':
                             tmp = input("\n\tIngrese el nuevo apellido: ")
                             c.execute("UPDATE CONTACTO set apellidoMatC = ? \
                             WHERE contacto_id = ?",(tmp,con.contacto_id,))
                             print("\n\tContacto actualizado!")
-                            input("\n\tPresione una tecla para continuar...")
+                            input("\n\tPresione < ENTER > para continuar...")
                             break
 
                         elif opc == '3':
@@ -293,7 +293,7 @@ class MenuContatos():
                             c.execute("UPDATE CONTACTO set nombresC = ? \
                             WHERE contacto_id = ?",(tmp,con.contacto_id,))
                             print("\n\tContacto actualizado!")
-                            input("\n\tPresione una tecla para continuar...")
+                            input("\n\tPresione < ENTER > para continuar...")
                             break
                         elif opc == '0':
                             return
@@ -329,11 +329,76 @@ class MenuContatos():
                     break
             else:
                 print("\n\t(!) Seleccione una de las opciones del menu...")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
 
 class MenuCorreoNuevo():
     def __init (self):
         pass
+    def enviar(self,u,e,c):
+        rows = c.execute ('SELECT * FROM USUARIO WHERE correo = ?',(u.correo,))
+        for row in rows:
+            u.contraApp = row[5]
+            break
+
+        try:
+            # Conexion con el servidor
+            smtpserver = smtplib.SMTP("smtp.gmail.com", 587)
+            #protocolo de cifrado de datos utilizado por gmail
+            smtpserver.starttls()
+            smtpserver.ehlo()
+            print ("\n\tConexion exitosa con Gmail")
+            # Datos
+            try:
+                gmail_user = u.correo
+                gmail_pwd = u.contraApp
+                #Credenciales
+                smtpserver.login(gmail_user, gmail_pwd)
+            except smtplib.SMTPException:
+                print ("\n\tAutenticacion incorrecta" + "\n")
+                smtpserver.close()
+                #sys.exit(1)
+
+        except (socket.gaierror, socket.error, socket.herror, smtplib.SMTPException):
+            print ("\n\tFallo en la conexion con Gmail")
+            input("\n\tPresione < ENTER > para continuar...")
+            #sys.exit(1)
+
+        #muestra la depuración de la operacion de envío 1=true
+        smtpserver.set_debuglevel(0)
+
+        header = MIMEMultipart()
+        header['Subject'] = e.asunto
+        header['From'] = u.correo
+        header['To'] = e.para
+
+        if e.texto != None:
+            bodymsg = MIMEText(e.texto, 'html') #Content-type:text/html
+            header.attach(bodymsg)
+
+        if e.adjunto != None:
+            if (os.path.isfile(e.adjunto)):
+                adjunto = MIMEBase('application', 'octet-stream')
+                adjunto.set_payload(open(e.adjunto, "rb").read())
+                encode_base64(adjunto)
+                adjunto.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(e.adjunto))
+                header.attach(adjunto)
+            else:
+                print("\n\t(!) No se pudo localizar el archivo adjunto...")
+
+        try:
+            smtpserver.sendmail(u.correo, e.para, header.as_string())
+
+        except smtplib.SMTPException:
+            print ("\n\t(!) El correo no pudo ser enviado" + "\n")
+            smtpserver.close()
+            input("\n\tPresione < ENTER > para continuar...")
+            #sys.exit(1)
+
+        print ("\n\tEl correo se envio correctamente\n")
+        smtpserver.close()
+        input("\n\tPresione < ENTER > para continuar")
+        #sys.exit(1)
+
     def menu(self,user,db,mContactos):
         menuC = mContactos
 
@@ -354,10 +419,10 @@ class MenuCorreoNuevo():
             c.de = u.correo
             print("\tDe:    ",c.de)
 
-            c.para = input("\tPara:  ")
+            c.para = str(input("\tPara:  ")).strip()
             if len(c.para) == 0:
                 return
-            while len(c.para) < 6:
+            while len(c.para) < 8:
                 c.para = input("\tIngrese un correo valido: ")
             cursor.execute("SELECT * FROM CONTACTO WHERE email = ? AND \
                 registra = ?", (c.para, u.correo))
@@ -365,7 +430,7 @@ class MenuCorreoNuevo():
                 break
             else:
                 print("\n\t(!) El contacto que escribio no esta registrado...")
-                input("\tPresione una tecla para continuar...")
+                input("\tPresione < ENTER > para continuar...")
                 os.system("clear")
                 menuC.agregar(user,db)
 
@@ -381,11 +446,11 @@ class MenuCorreoNuevo():
         if len(c.texto ) == 0:
             c.texto = None
 
-        c.asunto = input("\tAsunto: ")
+        c.asunto = str(input("\tAsunto: ")).strip()
         if len(c.asunto) == 0:
             c.asunto = None
 
-        c.adjunto = input("\tAdjunto: ")
+        c.adjunto = str(input("\tAdjunto: ")).strip()
         if len(c.adjunto) == 0:
             c.adjunto = None
 
@@ -397,7 +462,8 @@ class MenuCorreoNuevo():
         (c.correo_id,c.fecha,c.hora,c.de,c.para,c.texto,c.asunto,\
         c.adjunto,c.eliminado))
 
-        input("\n\tCorreo guardado exitosamente!")
+        print("\n\tCorreo guardado exitosamente!")
+        self.enviar(u,c,cursor)
         db.commit()
 
 class MenuCorreoEnviado():
@@ -412,7 +478,7 @@ class MenuCorreoEnviado():
             = ? ORDER BY correo_id DESC", (user.correo,False) )
         for row in rows:
             if i > 4:
-                input("\n\tPresione una tecla para mostrar mas correos...")
+                input("\n\tPresione < ENTER > para mostrar mas correos...")
                 os.system("clear")
                 i = 0
             e = Correo(None)
@@ -426,11 +492,11 @@ class MenuCorreoEnviado():
             e.asunto = row [6]
             e.adjunto = row [7]
             print(e)
-            print("=========================================")
+            print("\t=========================================")
             i += 1
         if flag == False:
             print("\n\t(!) No existen correos enviados!!")
-        input("\n\tNo hay mas correos, presione una tecla para regresar...")
+        input("\n\tNo hay mas correos, Presione < ENTER >para regresar...")
 
     def busquedaFecha(self,user,cursor):
         flag = False
@@ -440,13 +506,13 @@ class MenuCorreoEnviado():
             fecha = input("\n\tIngrese la fecha en formato dd/mm/aaaa: ")
             if len(fecha) < 10 and len(fecha) > 1 or len(fecha) > 10:
                 print("\n\t(!) Ingrese la fecha en el formato que se muestra!!")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
             elif len(fecha) == 0:
                 return
             else:
                 break
         rows = cursor.execute("SELECT * FROM CORREO WHERE de = ? AND \
-            fecha = ? AND eliminado = ?",(user.correo,fecha,False) )
+            fecha = ? AND eliminado = ?",(user.correo,fecha,False,) )
         os.system("clear")
         for row in rows:
             e = Correo(None)
@@ -460,10 +526,10 @@ class MenuCorreoEnviado():
             e.asunto = row [6]
             e.adjunto = row [7]
             print(e)
-            print("=========================================")
+            print("\t=========================================")
         if flag == False:
             print("\n\t(!) No existen correos enviados con la fecha dada!!")
-            input("\n\tPresione una tecla para continuar...")
+            input("\n\tPresione < ENTER > para continuar...")
         else:
             self.subMenu(user,cursor)
 
@@ -472,7 +538,7 @@ class MenuCorreoEnviado():
         i = 0
         flag = False
         rows = cursor.execute("SELECT * FROM CONTACTO WHERE registra = ?",\
-            (user.correo) )
+            (user.correo,) )
         print("\n\tContactos registrados: ")
         for row in rows:
             i += 1
@@ -490,7 +556,7 @@ class MenuCorreoEnviado():
                 print("\n\t(!) Ingrese un numero!")
         tmp = self.list[selec-1]
         rows = cursor.execute("SELECT * FROM CORREO WHERE de = ? AND para = ?\
-            AND eliminado = ?",(user.correo,tmp,False))
+            AND eliminado = ?",(user.correo,tmp,False,))
         os.system("clear")
         for row in rows:
             e = Correo(None)
@@ -504,11 +570,11 @@ class MenuCorreoEnviado():
             e.asunto = row [6]
             e.adjunto = row [7]
             print(e)
-            print("=========================================")
+            print("\t=========================================")
 
         if flag == False:
             print("\n\t(!) No existen correos registrados!!")
-            input("\n\tPresione una tecla para continuar...")
+            input("\n\tPresione < ENTER > para continuar...")
         else:
             self.subMenu(user,cursor)
 
@@ -524,7 +590,7 @@ class MenuCorreoEnviado():
             else:
                 break
         rows = cursor.execute("SELECT * FROM CORREO WHERE texto LIKE ? AND \
-            eliminado = ?",('%'+text+'%',False))
+            eliminado = ?",('%'+text+'%',False,))
         os.system("clear")
         print("\n\tBusqueda en TEXTO:\n")
         for row in rows:
@@ -539,10 +605,10 @@ class MenuCorreoEnviado():
             e.asunto = row [6]
             e.adjunto = row [7]
             print(e)
-            print("=========================================")
+            print("\t=========================================")
 
         rows = cursor.execute("SELECT * FROM CORREO WHERE para LIKE ? AND \
-            eliminado = ?",('%'+text+'%',False))
+            eliminado = ?",('%'+text+'%',False,))
         print("\n\n\tBusqueda en CC:\n")
         for row in rows:
             e = Correo(None)
@@ -556,10 +622,10 @@ class MenuCorreoEnviado():
             e.asunto = row [6]
             e.adjunto = row [7]
             print(e)
-            print("=========================================")
+            print("\t=========================================")
 
         rows = cursor.execute("SELECT * FROM CORREO WHERE asunto LIKE ? AND \
-            eliminado = ?",('%'+text+'%',False))
+            eliminado = ?",('%'+text+'%',False,))
         print("\n\n\tBusqueda en ASUNTO:\n")
         for row in rows:
             e = Correo(None)
@@ -573,11 +639,11 @@ class MenuCorreoEnviado():
             e.asunto = row [6]
             e.adjunto = row [7]
             print(e)
-            print("=========================================")
+            print("\t=========================================")
 
         if flagT == False and flagC == False and flagA == False:
             print("\n\t(!) No hay conincidencias!!")
-            input("\n\tPresione una tecla para continuar...")
+            input("\n\tPresione < ENTER >para continuar...")
         else:
             self.subMenu(user,cursor)
 
@@ -607,7 +673,7 @@ class MenuCorreoEnviado():
                     e.asunto = row [6]
                     e.adjunto = row [7]
                     e.eliminado = row [8]
-                    print("=========================================")
+                    print("\t=========================================")
                 if flag == False:
                     print("\n\t(!) EL ID ingresado no existe!!")
                 else:
@@ -634,89 +700,10 @@ class MenuCorreoEnviado():
                 self.reenviar(user,cursor,e)
             else:
                 print("\n\tIngrese una de las opciones...")
-                input("\n\tPresione una tecla para continuar...")
-    def enviar():
-        # Conexion con el servidor
-        try:
-            smtpserver = smtplib.SMTP("smtp.gmail.com", 587)
-            smtpserver.ehlo()
-            #protocolo de cifrado de datos utilizado por gmail
-            smtpserver.starttls()
-            smtpserver.ehlo()
-            print ("Conexion exitosa con Gmail")
-            print ("Concectado a Gmail")
-            # Datos
-            try:
-                gmail_user = str(input("Escriba su correo: ")).lower().strip()
-                gmail_pwd = getpass.getpass("Escriba su password: ").strip()
-                #Credenciales
-                smtpserver.login(gmail_user, gmail_pwd)
-            except smtplib.SMTPException:
-                print ("")
-                print ("Autenticacion incorrecta" + "\n")
-                smtpserver.close()
-                getpass.getpass("Presione ENTER para continuar...")
-                sys.exit(1)
-
-        except (socket.gaierror, socket.error, socket.herror, smtplib.SMTPException):
-            print ("Fallo en la conexion con Gmail")
-            input("Presione ENTER para continuar...")
-            sys.exit(1)
-
-
-        while True:
-            to = str(input("Enviar correo a: ")).lower().strip()
-            if to != "":
-                break
-            else:
-                print ("El correo es necesario!!!")
-
-        sub = str(input("Asunto: ")).strip()
-        bodymsg = str(input("Mensaje: "))
-        #print ("")
-        #header = "Para: " + to +"\n" + "De: " + gmail_user + "\n" + "Asunto: " + sub + "\n"
-        #print (header)
-        #msg = header + "\n" + bodymsg + "\n\n"
-        #print (msg)
-        archivo = input("Adjuntar: ")
-
-
-        #muestra la depuración de la operacion de envío 1=true
-        smtpserver.set_debuglevel(1)
-
-        header = MIMEMultipart()
-        header['Asunto'] = sub
-        header['De'] = gmail_user
-        header['Para'] = to
-
-        bodymsg = MIMEText(bodymsg, 'html') #Content-type:text/html
-        header.attach(bodymsg)
-
-        if (os.path.isfile(archivo)):
-            adjunto = MIMEBase('application', 'octet-stream')
-            adjunto.set_payload(open(archivo, "rb").read())
-            encode_base64(adjunto)
-            adjunto.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(archivo))
-            header.attach(adjunto)
-        else:
-            print("\n\t(!) No se pudo localizar el archivo adjunto...")
-
-        try:
-            smtpserver.sendmail(gmail_user, to, header.as_string())
-
-        except smtplib.SMTPException:
-            print ("El correo no pudo ser enviado" + "\n")
-            smtpserver.close()
-            getpass.getpass("Presione ENTER para continuar...")
-            sys.exit(1)
-
-        print ("El correo se envio correctamente" + "\n")
-        smtpserver.close()
-        getpass.getpass("Presione ENTER para continuar")
-        sys.exit(1)
-
+                input("\n\tPresione < ENTER > para continuar...")
 
     def reenviar(self,user,cursor,e):
+        mCorreoNvo = MenuCorreoNuevo()
         os.system("clear")
         print(e)
         while True:
@@ -726,15 +713,23 @@ class MenuCorreoEnviado():
                 opc = int(opc)
                 if opc == 1:
                     while True:
-                        os.system("clear")
-                        c.para = input("\tPara: ")
-                        if len(c.para) < 8:
+                        e.para = str(input("\tPara: ")).strip()
+                        if len(e.para) < 8:
                             print("\n\t(!) Ingrese un destinatario valido!")
-                            input("\n\ŧPresione una tecla para continuar...")
+                            input("\n\tPresione < ENTER > para continuar...")
                         else:
                             break
+                    e.eliminado = False
+                    e.hora = time.strftime("%X")
+                    e.correo_id = None
 
+                    cursor.execute("INSERT INTO CORREO (correo_id,fecha,hora,de,para,\
+                    texto,asunto,adjunto,eliminado) VALUES (?,?,?,?,?,?,?,?,?)",\
+                    (e.correo_id,e.fecha,e.hora,e.de,e.para,e.texto,e.asunto,\
+                    e.adjunto,e.eliminado))
 
+                    print("\n\tCorreo reenviado exitosamente!")
+                    mCorreoNvo.enviar(user,e,cursor)
 
                     break #Termina while para para cuestionar...
                 elif opc == 2:
@@ -756,11 +751,11 @@ class MenuCorreoEnviado():
                     cursor.execute('UPDATE CORREO set eliminado = ? WHERE \
                         de = ?',(False,user.correo))
                     print("\n\tRecuperacion exitosa!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > para continuar...")
                     break
                 elif opc == 2:
                     print("\n\tRecuperacion abortada!!!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > continuar...")
                     return
                 else:
                     input("\n\t(!) Ingrese una de las opciones!")
@@ -777,11 +772,11 @@ class MenuCorreoEnviado():
                     cursor.execute('UPDATE CORREO set eliminado = ? WHERE \
                         correo_id = ?',(True,e.correo_id,))
                     print("\n\tEliminacion exitosa!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > para continuar...")
                     break
                 elif opc == 2:
                     print("\n\tEliminacion abortada!!!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > para continuar...")
                     return
                 else:
                     input("\n\t(!) Ingrese una de las opciones!")
@@ -811,11 +806,11 @@ class MenuCorreoEnviado():
                         (row[0],))
 
                     print("\n\tEliminacion exitosa!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > para continuar...")
                     break
                 elif opc == 2:
                     print("\n\tEliminacion abortada!!!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > para continuar...")
                     return
                 else:
                     input("\n\t(!) Ingrese una de las opciones!")
@@ -856,10 +851,10 @@ class MenuCorreoEnviado():
                     break
                 else:
                     print("\n\t(!) Seleccione una de las opciones del menu!!!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\tPresione < ENTER > para continuar...")
             else:
                 print("\n\t(!) Ingrese digitos!!!")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
 
 
 class MainMenu():
@@ -891,10 +886,10 @@ class MainMenu():
                     break
                 else:
                     print("\n\t(!) Seleccione una de las opciones del menu!!!")
-                    input("\n\tPresione una tecla para continuar...")
+                    input("\n\t para continuar...")
             else:
                 print("\n\t(!) Ingrese solo digitos!!!")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
 
 class Login_Registro():
     db = sqlite3.connect("db_correos.db")
@@ -914,7 +909,7 @@ class Login_Registro():
 
             os.system("clear")
             print("\n\t* * * LOGIN * * *\n\t(Presione <ENTER> para regresar)")
-            email = input("\n\tEmail: ")
+            email = str(input("\n\tEmail: ")).lower().strip()
             if email == '':
                 break
             contra = getpass.getpass ("\n\tContraseña: ")
@@ -939,13 +934,13 @@ class Login_Registro():
         while True:
             os.system("clear")
             print("\n\t* * * Registro * * * \n\t(Presione <ENTER> para regresar)")
-            user.correo = input ("\n\tEmail: ")
+            user.correo = str(input ("\n\tEmail: ")).lower().strip()
             if user.correo == '':
                 return
             c.execute ('SELECT * FROM USUARIO WHERE correo = ?',(user.correo,))
             if c.fetchone() != None:
                 print("\n\t(!) El correo ingresado ya ha sido registrado!!")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
             else:
                 break
         while True:
@@ -960,7 +955,7 @@ class Login_Registro():
                     user.contra = pass1
                     break
         while True:
-            print("\n\tPresione solo < ENTER > si no posee alguna")
+            print("\n\tPresione solo < ENTER > si no posee alguna\n\t")
             pass1 = getpass.getpass("\tContrañena de aplicacion Gmail: ")
             if len(pass1) == 0:
                 break
@@ -973,23 +968,23 @@ class Login_Registro():
                 if pass1 == pass2:
                     user.contraApp = pass1
                     break
-        user.apellidoPatU = input("\tApellido paterno: ")
+        user.apellidoPatU = str(input("\tApellido paterno: ")).strip()
         while user.apellidoPatU.isalnum() == False:
             print("\n\t(!) Apellido invalido!")
-            user.apellidoPatU = input ("\tIngrese su apellido paterno de nuevo: ")
+            user.apellidoPatU = str(input ("\tIngrese su apellido paterno de nuevo: ")).strip()
 
-        user.apellidoMatU = input("\tApellido Materno: ")
+        user.apellidoMatU = str(input("\tApellido Materno: ")).strip()
         user.nombresU = input("\tNombre(s): ")
         while len(user.nombresU) < 1:
             print("(!) Nombre invalido!")
-            user.nombresU = input("\tIngrese su nombre de nuevo: ")
+            user.nombresU = str(input("\tIngrese su nombre de nuevo: ")).strip()
         c.execute("INSERT INTO USUARIO (correo,contra,apellidoPatU,\
             apellidoMatU,nombresU,contraApp) VALUES (?,?,?,?,?,?)",\
             (user.correo, user.contra,user.apellidoPatU,user.apellidoMatU,\
             user.nombresU,user.contraApp,))
         db.commit()
         print("\n\tRegistro exitoso!")
-        input("\n\tPresione una tecla para continuar...")
+        input("\n\tPresione < ENTER >para continuar...")
 
     while True:
         user = Usuario(None)
@@ -1013,7 +1008,7 @@ class Login_Registro():
                 exit()
             else:
                 print("\n\t(!) Seleccione una de las opciones del menu!!!")
-                input("\n\tPresione una tecla para continuar...")
+                input("\n\tPresione < ENTER > para continuar...")
         else:
             print("\n\t(!) Ingrese solo digitos...")
-            input("\n\tPresione una tecla para continuar...")
+            input("\n\tPresione < ENTER > para continuar...")
